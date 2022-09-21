@@ -1,5 +1,7 @@
 package com.cst438.controllers;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -155,6 +158,126 @@ public class GradeBookController {
 		}
 		
 	}
+	
+		
+	 @PostMapping("/addAssignment/{course_id}")
+	 @Transactional
+	 public AssignmentListDTO.AssignmentDTO addAssigment(@RequestBody AssignmentListDTO.AssignmentDTO add, @PathVariable("course_id") Integer course_id ){
+		
+			String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+			
+				
+			Course c = checkCourse(email,course_id);
+			
+			Assignment added = new Assignment();
+			
+			added.setName(add.assignmentName);
+			
+			//added.setDueDate(add.)));
+			
+			Date date = Date.valueOf(add.dueDate);
+			
+			added.setDueDate(date);
+			
+			added.setCourse(c);
+				
+			
+					
+			assignmentRepository.save(added);
+					
+	
+			AssignmentListDTO.AssignmentDTO result = new AssignmentListDTO.AssignmentDTO();
+			result.assignmentName = add.assignmentName;
+			result.dueDate = add.dueDate;
+			result.courseId = c.getCourse_id();
+			result.courseTitle = c.getTitle();
+			result.courseId = course_id;
+			int index = c.getAssignments().indexOf(added);
+			result.assignmentId = c.getAssignments().get(index).getId();
+
+			return result;
+
+
+	}
+	 
+	 @GetMapping("/assignments/{course_id}")
+		public AssignmentListDTO getAssignments(@PathVariable("course_id") Integer course_id ) {
+			
+			String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+			
+			Course c = checkCourse(email,course_id);
+			
+					
+			AssignmentListDTO result = new AssignmentListDTO();
+			for (Assignment a: c.getAssignments()) {
+				result.assignments.add(new AssignmentListDTO.AssignmentDTO(a.getId(), a.getCourse().getCourse_id(), a.getName(), a.getDueDate().toString() , a.getCourse().getTitle()));
+			}
+			return result;
+		}
+	 
+	 @PutMapping("/changeAssignmentName/{course_id}/{assignment_id}")
+	 @Transactional
+	 public void changeAssignmentName(@RequestBody AssignmentListDTO.AssignmentDTO add,@PathVariable("course_id") Integer course_id,@PathVariable("assignment_id") Integer assignment_id ){
+		
+			String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+			
+			Assignment change = checkAssignment(assignment_id,email);
+			
+			String temp = add.assignmentName;
+			
+			change.setName(temp);
+					
+			assignmentRepository.save(change);
+
+
+	}
+	 
+	 
+	 
+	 @DeleteMapping("/deleteAssignment/{course_id}/{assignment_id}")
+	 @Transactional
+	 public void deleteAssignment(@PathVariable("course_id") Integer course_id,@PathVariable("assignment_id") Integer assignment_id ){
+		
+			String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+					
+			Assignment m = checkAssignment(assignment_id,email);
+			Course c = checkCourse(email,course_id);
+			
+			
+			for(Assignment name: c.getAssignments()) {
+				
+				if(name.getId() == assignment_id && name.getNeedsGrading() == 0) {
+					
+					assignmentRepository.delete(name);
+					
+				}
+				if(name.getId() == assignment_id && name.getNeedsGrading() == 1) {
+					
+					throw new ResponseStatusException( HttpStatus.UNAUTHORIZED, "Assignments has grades " );
+					
+				}
+				
+				
+			}
+			
+	}
+	 
+	 
+	 private Course checkCourse(String email, int course_id) {
+			// get assignment 
+			Course course= courseRepository.findById(course_id).orElse(null);
+			if (course == null) {
+				throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Course not found. "+ course_id);
+			}
+			// check that user is the course instructor
+			if (!course.getInstructor().equals(email)) {
+				throw new ResponseStatusException( HttpStatus.UNAUTHORIZED, "Not Authorized. " );
+			}
+			
+			return course;
+		}
+	
+
 	
 	private Assignment checkAssignment(int assignmentId, String email) {
 		// get assignment 
