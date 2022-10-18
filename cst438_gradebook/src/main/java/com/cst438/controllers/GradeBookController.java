@@ -160,14 +160,14 @@ public class GradeBookController {
 	}
 	
 		
-	 @PostMapping("/addAssignment/{course_id}")
+	 @PostMapping("/addAssignment")
 	 @Transactional
-	 public AssignmentListDTO.AssignmentDTO addAssigment(@RequestBody AssignmentListDTO.AssignmentDTO add, @PathVariable("course_id") Integer course_id ){
+	 public AssignmentListDTO.AssignmentDTO addAssigment(@RequestBody AssignmentListDTO.AssignmentDTO add){
 		
 			String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
 			
 				
-			Course c = checkCourse(email,course_id);
+			Course c = checkCourse(email, add.courseId);
 			
 			Assignment added = new Assignment();
 			
@@ -191,7 +191,6 @@ public class GradeBookController {
 			result.dueDate = add.dueDate;
 			result.courseId = c.getCourse_id();
 			result.courseTitle = c.getTitle();
-			result.courseId = course_id;
 			int index = c.getAssignments().indexOf(added);
 			result.assignmentId = c.getAssignments().get(index).getId();
 
