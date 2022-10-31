@@ -42,7 +42,7 @@ import com.cst438.domain.EnrollmentRepository;
 @SpringBootTest
 public class EndToEndTestSubmitGrades {
 
-	public static final String CHROME_DRIVER_FILE_LOCATION = "C:/chromedriver_win32/chromedriver.exe";
+	public static final String CHROME_DRIVER_FILE_LOCATION = "/Users/emranarsala/desktop/chromedriver";
 
 	public static final String URL = "http://localhost:3000";
 	public static final String TEST_USER_EMAIL = "test@csumb.edu";
@@ -88,7 +88,7 @@ public class EndToEndTestSubmitGrades {
 		e.setCourse(c);
 		e.setStudentEmail(TEST_USER_EMAIL);
 		e.setStudentName(TEST_STUDENT_NAME);
-
+        
 		courseRepository.save(c);
 		a = assignmentRepository.save(a);
 		e = enrollmentRepository.save(e);
